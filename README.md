@@ -1,1 +1,1 @@
-# fauna-transpiler
+# fauna-sql2fql

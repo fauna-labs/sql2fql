@@ -1,4 +1,4 @@
-module transpile
+module sql2fql
 
 go 1.15
 
