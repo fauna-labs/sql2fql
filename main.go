@@ -33,9 +33,9 @@ func main() {
 		return
 	}
 
-	printAst(astNode)
-	fmt.Printf("Columns: %v\n", extractColumns(astNode))
+	//printAst(astNode)
+	//fmt.Printf("Columns: %v\n", extractColumns(astNode))
 
-	//ir := constructIR(astNode)
-	//fmt.Println(ir.FQLRepr())
+	ir := constructIR(astNode)
+	fmt.Println(ir.FQLRepr())
 }
