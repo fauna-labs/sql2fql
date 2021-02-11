@@ -36,7 +36,7 @@ func (v *fqlIRVisitor) Enter(in ast.Node) (res ast.Node, skip bool) {
 		v.root = next.root
 
 	case *ast.BinaryOperationExpr:
-		next := &eqOpIRVisitor{}
+		next := &binOpIRVisitor{}
 		res, skip = node.Accept(next)
 		v.root = next.root
 

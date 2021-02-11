@@ -68,7 +68,7 @@ func (v *selectIRVisitor) Enter(in ast.Node) (ast.Node, bool) {
 		}
 
 		if node.Where != nil {
-			filter := &eqOpIRVisitor{}
+			filter := &binOpIRVisitor{}
 			node.Where.Accept(filter)
 			v.root.filter = filter.root
 		}
