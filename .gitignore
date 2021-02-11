@@ -13,3 +13,7 @@
 
 # Jetbrains
 .idea/*
+
+.vscode/launch.json
+
+__debug_bin
