@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/pingcap/parser"
 	"github.com/pingcap/parser/ast"
@@ -21,11 +22,24 @@ func parse(sql string) (*ast.StmtNode, error) {
 }
 
 func main() {
-	if len(os.Args) != 2 {
-		fmt.Println("usage: colx 'SQL statement'")
+	if len(os.Args) < 2 {
+		fmt.Println("usage: go run . 'SQL statement' true/false")
 		return
 	}
+
 	sql := os.Args[1]
+	optimize := false
+
+	if len(os.Args) > 2 {
+		optimizeStr := os.Args[2]
+		opt, err := strconv.ParseBool(optimizeStr)
+		if err != nil {
+			fmt.Printf("bool parse error: %v\n", err.Error())
+			return
+		}
+		optimize = opt
+	}
+
 	astNode, err := parse(sql)
 
 	if err != nil {
@@ -35,7 +49,11 @@ func main() {
 
 	//printAst(astNode)
 	//fmt.Printf("Columns: %v\n", extractColumns(astNode))
-
-	ir := constructIR(astNode)
+	var ir fqlIR
+	if optimize {
+		ir = constructIR(astNode)
+	} else {
+		ir = constructIROptimized(astNode)
+	}
 	fmt.Println(ir.FQLRepr())
 }
