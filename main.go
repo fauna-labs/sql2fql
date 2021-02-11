@@ -5,6 +5,7 @@ import (
 	"github.com/pingcap/parser"
 	"github.com/pingcap/parser/ast"
 	_ "github.com/pingcap/parser/test_driver"
+	"os"
 )
 
 func parse(sql string) (*ast.StmtNode, error) {
@@ -19,12 +20,11 @@ func parse(sql string) (*ast.StmtNode, error) {
 }
 
 func main() {
-	//if len(os.Args) != 2 {
-	//	fmt.Println("usage: colx 'SQL statement'")
-	//	return
-	//}
-	//sql := os.Args[1]
-	sql := "SELECT * FROM ORDERS"
+	if len(os.Args) != 2 {
+		fmt.Println("usage: colx 'SQL statement'")
+		return
+	}
+	sql := os.Args[1]
 	astNode, err := parse(sql)
 
 	if err != nil {
@@ -32,18 +32,9 @@ func main() {
 		return
 	}
 
-
 	//printAst(astNode)
 	//fmt.Printf("Columns: %v\n", extractColumns(astNode))
 
 	fql := constructAst(astNode)
 	fmt.Println(fql)
-
-	//extractStatement
-	//if statement SELECT -> create Map with Documents
-	//extract table name
-
-	//if columns empty -> Lambda(ref -> Get(ref))
-	//else add Let expression
 }
-
