@@ -4,7 +4,7 @@ import "testing"
 
 func TestSimpleSelect(t *testing.T) {
 	sql := "select * from a"
-	fql := "Map(Paginate(Documents(Collection('a'))), Lambda('x', Get(Var('x')))"
+	fql := "Map(Paginate(Documents(Collection('a'))), Lambda('x', Get(Var('x'))))"
 	assertSQL2FQL(t, sql, fql)
 }
 
@@ -22,7 +22,7 @@ func TestSelectMuiltipleField(t *testing.T) {
 
 func TestSelectSingleFieldWithSingleExactWhere(t *testing.T) {
 	sql := "select * from c where a = 5"
-	fql := "Map(Paginate(Filter(Documents(Collection('c')), Lambda('x', Equals(Select(['data', 'a'], Get(Var('x'))), 5)))), Lambda('x', Get(Var('x'))))"
+	fql := "Map(Paginate(Filter(Documents(Collection('c')), Lambda('x', Let({doc: Get(Var('x'))}, Equals(Select(['data','a'], Var('doc')), 5))))), Lambda('x', Get(Var('x'))))"
 	assertSQL2FQL(t, sql, fql)
 }
 

@@ -43,6 +43,11 @@ func (v *fqlIRVisitor) Enter(in ast.Node) (res ast.Node, skip bool) {
 		res, skip = node.Accept(next)
 		v.root = next.root
 
+	case ast.ValueExpr:
+		next := &valueIRVisitor{}
+		res, skip = node.Accept(next)
+		v.root = next.root
+
 	default:
 		res, skip = in, false
 	}
@@ -51,6 +56,35 @@ func (v *fqlIRVisitor) Enter(in ast.Node) (res ast.Node, skip bool) {
 }
 
 func (v *fqlIRVisitor) Leave(in ast.Node) (ast.Node, bool) {
+	return in, true
+}
+
+type valueIR string
+
+func (v valueIR) FQLRepr() string {
+	return string(v)
+}
+
+type valueIRVisitor struct {
+	root valueIR
+}
+
+func (v *valueIRVisitor) Enter(in ast.Node) (ast.Node, bool) {
+	switch node := in.(type) {
+	case ast.ValueExpr:
+		switch value := node.GetValue().(type) {
+		case int64:
+			v.root = valueIR(fmt.Sprint(value))
+		default:
+			panic("scalar value not supported")
+		}
+		return in, true
+	default:
+		return in, false
+	}
+}
+
+func (v *valueIRVisitor) Leave(in ast.Node) (ast.Node, bool) {
 	return in, true
 }
 
@@ -127,10 +161,10 @@ func (v *eqOpIRVisitor) Enter(in ast.Node) (ast.Node, bool) {
 		node.L.Accept(left)
 		node.R.Accept(right)
 		v.root = &eqOpIR{left.root, right.root}
+		return in, true
 	default:
-		panic("invalid node")
+		return in, false
 	}
-	return in, true
 }
 
 func (v *eqOpIRVisitor) Leave(in ast.Node) (ast.Node, bool) {
@@ -158,7 +192,7 @@ func (s *selectIR) FQLRepr() string {
 	sb.WriteString("), ")
 
 	if len(s.fields) == 0 {
-		sb.WriteString("Lambda('x', Get(Var('x'))")
+		sb.WriteString("Lambda('x', Get(Var('x')))")
 	} else {
 		sb.WriteString("Lambda('x', Let({doc: Get(Var('x'))},{")
 
