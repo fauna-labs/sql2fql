@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/pingcap/parser"
 	"github.com/pingcap/parser/ast"
@@ -20,12 +21,11 @@ func parse(sql string) (*ast.StmtNode, error) {
 }
 
 func main() {
-	//if len(os.Args) != 2 {
-	//	fmt.Println("usage: colx 'SQL statement'")
-	//	return
-	//}
-	//sql := os.Args[1]
-	sql := "select * from foo use index (bar)"
+	if len(os.Args) != 2 {
+		fmt.Println("usage: colx 'SQL statement'")
+		return
+	}
+	sql := os.Args[1]
 	astNode, err := parse(sql)
 
 	if err != nil {
