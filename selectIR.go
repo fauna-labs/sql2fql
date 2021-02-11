@@ -18,11 +18,25 @@ func (s *selectIR) FQLRepr() string {
 
 	sb.WriteString("Map(Paginate(")
 
-	if s.filter != nil {
-		filter := "Filter(%s, Lambda('x', Let({doc: Get(Var('x'))}, %s)))"
-		sb.WriteString(fmt.Sprintf(filter, s.source.FQLRepr(), s.filter.FQLRepr()))
-	} else {
-		sb.WriteString(s.source.FQLRepr())
+	switch s.source.(type) {
+	case *collectionIR:
+		if s.filter != nil {
+			filter := "Filter(Documents(%s), Lambda('x', Let({doc: Get(Var('x'))}, %s)))"
+			sb.WriteString(fmt.Sprintf(filter, s.source.FQLRepr(), s.filter.FQLRepr()))
+		} else {
+			sb.WriteString(fmt.Sprintf("Documents(%s)", s.source.FQLRepr()))
+		}
+	case *indexIR:
+		if s.filter != nil {
+			b := s.filter.(*binOpIR)
+			if b.op != EQ {
+				panic("indexes only works with equality operators")
+			}
+
+			sb.WriteString(fmt.Sprintf("Match(%s, %s)", s.source.FQLRepr(), b.rightIR.FQLRepr()))
+		} else {
+			sb.WriteString(fmt.Sprintf("Match(%s)", s.source.FQLRepr()))
+		}
 	}
 
 	sb.WriteString("), ")
@@ -55,7 +69,7 @@ func (v *selectIRVisitor) Enter(in ast.Node) (ast.Node, bool) {
 	case *ast.SelectStmt:
 		v.root = &selectIR{}
 
-		source := &collectionIRVisitor{}
+		source := &sourceIRVisitor{}
 		node.From.Accept(source)
 		v.root.source = source.root
 

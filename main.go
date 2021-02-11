@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/pingcap/parser"
 	"github.com/pingcap/parser/ast"
 	_ "github.com/pingcap/parser/test_driver"
-	"os"
 )
 
 func parse(sql string) (*ast.StmtNode, error) {
@@ -20,11 +20,12 @@ func parse(sql string) (*ast.StmtNode, error) {
 }
 
 func main() {
-	if len(os.Args) != 2 {
-		fmt.Println("usage: colx 'SQL statement'")
-		return
-	}
-	sql := os.Args[1]
+	//if len(os.Args) != 2 {
+	//	fmt.Println("usage: colx 'SQL statement'")
+	//	return
+	//}
+	//sql := os.Args[1]
+	sql := "select * from foo use index (bar)"
 	astNode, err := parse(sql)
 
 	if err != nil {
@@ -32,9 +33,9 @@ func main() {
 		return
 	}
 
-	//printAst(astNode)
-	//fmt.Printf("Columns: %v\n", extractColumns(astNode))
+	printAst(astNode)
+	fmt.Printf("Columns: %v\n", extractColumns(astNode))
 
-	ir := constructIR(astNode)
-	fmt.Println(ir.FQLRepr())
+	//ir := constructIR(astNode)
+	//fmt.Println(ir.FQLRepr())
 }

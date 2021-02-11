@@ -32,6 +32,18 @@ func TestSelectSingleFieldWithSingleExactWhereGreater(t *testing.T) {
 	assertSQL2FQL(t, sql, fql)
 }
 
+func TestSelectWithAnIndex(t *testing.T) {
+	sql := "select * from c use index (foo)"
+	fql := "Map(Paginate(Match(Index('foo'))), Lambda('x', Get(Var('x'))))"
+	assertSQL2FQL(t, sql, fql)
+}
+
+func TestSelectWithAnIndexAndWhereClause(t *testing.T) {
+	sql := "select * from c use index (foo) where a = 5"
+	fql := "Map(Paginate(Match(Index('foo'), 5)), Lambda('x', Get(Var('x'))))"
+	assertSQL2FQL(t, sql, fql)
+}
+
 func assertSQL2FQL(t *testing.T, sql, fql string) {
 	ast, err := parse(sql)
 	if err != nil {
