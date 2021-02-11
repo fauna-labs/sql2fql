@@ -7,8 +7,51 @@ import (
 	"github.com/pingcap/parser/ast"
 )
 
+func constructIR(root *ast.StmtNode) fqlIR {
+	v := &selectIRVisitor{}
+	(*root).Accept(v)
+	return v.root
+}
+
 type fqlIR interface {
 	FQLRepr() string
+}
+
+type fqlIRVisitor struct {
+	root fqlIR
+}
+
+func (v *fqlIRVisitor) Enter(in ast.Node) (res ast.Node, skip bool) {
+	switch node := in.(type) {
+	case *ast.SelectStmt:
+		next := &selectIRVisitor{}
+		res, skip = node.Accept(next)
+		v.root = next.root
+
+	case *ast.ColumnName:
+		next := &fieldIRVisitor{}
+		res, skip = node.Accept(next)
+		v.root = next.root
+
+	case *ast.TableName:
+		next := &collectionIRVisitor{}
+		res, skip = node.Accept(next)
+		v.root = next.root
+
+	case *ast.BinaryOperationExpr:
+		next := &eqOpIRVisitor{}
+		res, skip = node.Accept(next)
+		v.root = next.root
+
+	default:
+		res, skip = in, false
+	}
+
+	return
+}
+
+func (v *fqlIRVisitor) Leave(in ast.Node) (ast.Node, bool) {
+	return in, true
 }
 
 type fieldIR struct {
@@ -19,16 +62,48 @@ func (f fieldIR) FQLRepr() string {
 	return fmt.Sprintf("Select(['data','%s'], Var('doc'))", f.name)
 }
 
-type collectionIR string
-
-func (c collectionIR) FQLRepr() string {
-	return fmt.Sprintf("Documents(Collection('%s'))", c)
+type fieldIRVisitor struct {
+	root *fieldIR
 }
 
-type selectIR struct {
-	source fqlIR
-	fields []*fieldIR
-	filter fqlIR
+func (v *fieldIRVisitor) Enter(in ast.Node) (ast.Node, bool) {
+	switch node := in.(type) {
+	case *ast.ColumnName:
+		v.root = &fieldIR{node.Name.L}
+		return in, true
+	default:
+		return in, false
+	}
+}
+
+func (v *fieldIRVisitor) Leave(in ast.Node) (ast.Node, bool) {
+	return in, true
+}
+
+type collectionIR struct {
+	name string
+}
+
+func (c *collectionIR) FQLRepr() string {
+	return fmt.Sprintf("Documents(Collection('%s'))", c.name)
+}
+
+type collectionIRVisitor struct {
+	root *collectionIR
+}
+
+func (v *collectionIRVisitor) Enter(in ast.Node) (ast.Node, bool) {
+	switch node := in.(type) {
+	case *ast.TableName:
+		v.root = &collectionIR{node.Name.L}
+		return in, true
+	default:
+		return in, false
+	}
+}
+
+func (v *collectionIRVisitor) Leave(in ast.Node) (ast.Node, bool) {
+	return in, true
 }
 
 type eqOpIR struct {
@@ -38,6 +113,34 @@ type eqOpIR struct {
 
 func (eq eqOpIR) FQLRepr() string {
 	return fmt.Sprintf("Equals(%s, %s)", eq.leftIR.FQLRepr(), eq.rightIR.FQLRepr())
+}
+
+type eqOpIRVisitor struct {
+	root *eqOpIR
+}
+
+func (v *eqOpIRVisitor) Enter(in ast.Node) (ast.Node, bool) {
+	switch node := in.(type) {
+	case *ast.BinaryOperationExpr:
+		left := &fqlIRVisitor{}
+		right := &fqlIRVisitor{}
+		node.L.Accept(left)
+		node.R.Accept(right)
+		v.root = &eqOpIR{left.root, right.root}
+	default:
+		panic("invalid node")
+	}
+	return in, true
+}
+
+func (v *eqOpIRVisitor) Leave(in ast.Node) (ast.Node, bool) {
+	return in, true
+}
+
+type selectIR struct {
+	source fqlIR
+	fields []*fieldIR
+	filter fqlIR
 }
 
 func (s *selectIR) FQLRepr() string {
@@ -73,38 +176,38 @@ func (s *selectIR) FQLRepr() string {
 	return sb.String()
 }
 
-type fqlIRVisitor struct {
-	root fqlIR
+type selectIRVisitor struct {
+	root *selectIR
 }
 
-func (f *fqlIRVisitor) Enter(in ast.Node) (ast.Node, bool) {
+func (v *selectIRVisitor) Enter(in ast.Node) (ast.Node, bool) {
 	switch node := in.(type) {
 	case *ast.SelectStmt:
-		f.root = &selectIR{}
+		v.root = &selectIR{}
 
-	case *ast.ColumnName:
-		field := &fieldIR{node.Name.L}
-		sel := f.root.(*selectIR)
-		sel.fields = append(sel.fields, field)
+		source := &collectionIRVisitor{}
+		node.From.Accept(source)
+		v.root.source = source.root
 
-	case *ast.TableName:
-		sel := f.root.(*selectIR)
-		sel.source = collectionIR(node.Name.L)
+		for _, fNode := range node.Fields.Fields {
+			if fNode.Expr != nil {
+				field := &fieldIRVisitor{}
+				fNode.Expr.Accept(field)
+				v.root.fields = append(v.root.fields, field.root)
+			}
+		}
 
-	case *ast.BinaryOperationExpr:
-		sel := f.root.(*selectIR)
-		sel.filter = &eqOpIR{}
+		if node.Where != nil {
+			filter := &eqOpIRVisitor{}
+			node.Where.Accept(filter)
+			v.root.filter = filter.root
+		}
+		return in, true
+	default:
+		return in, false
 	}
-
-	return in, false
 }
 
-func (v *fqlIRVisitor) Leave(in ast.Node) (ast.Node, bool) {
+func (v *selectIRVisitor) Leave(in ast.Node) (ast.Node, bool) {
 	return in, true
-}
-
-func constructIR(root *ast.StmtNode) fqlIR {
-	v := &fqlIRVisitor{}
-	(*root).Accept(v)
-	return v.root
 }
