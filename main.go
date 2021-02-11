@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/pingcap/parser"
 	"github.com/pingcap/parser/ast"
 	_ "github.com/pingcap/parser/test_driver"
-	"os"
 )
 
 func parse(sql string) (*ast.StmtNode, error) {
@@ -35,6 +36,6 @@ func main() {
 	//printAst(astNode)
 	//fmt.Printf("Columns: %v\n", extractColumns(astNode))
 
-	fql := constructAst(astNode)
-	fmt.Println(fql)
+	ir := constructIR(astNode)
+	fmt.Println(ir.FQLRepr())
 }

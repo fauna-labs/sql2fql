@@ -26,7 +26,8 @@ func assertSQL2FQL(t *testing.T, sql, fql string) {
 		t.Error(err)
 	}
 
-	if constructAst(ast) != fql {
-		t.Fail()
+	actual := constructIR(ast).FQLRepr()
+	if actual != fql {
+		t.Errorf("\n  actual: %s\nexpected: %s", actual, fql)
 	}
 }
