@@ -22,14 +22,30 @@ func (c collectionIR) FQLRepr() string {
 }
 
 type selectIR struct {
+	sourceType string
 	source fqlIR
 	fields []fieldIR
+	where filterIR
+}
+
+type filterIR struct {
+	operation string
+
+	expressionLeft *filterIR
+	expressionRight *filterIR
+
+	operandLeft string
+	operandRight string
 }
 
 func (s *selectIR) FQLRepr() string {
 	var sb strings.Builder
 
-	sb.WriteString(fmt.Sprintf("Map(Paginate(Documents(%s)),", s.source.FQLRepr()))
+	if s.sourceType == "index" {
+		sb.WriteString(fmt.Sprintf("Map(Index(Match(%s)),", s.source.FQLRepr()))
+	} else { // if it is an collection
+		sb.WriteString(fmt.Sprintf("Map(Paginate(Documents(%s)),", s.source.FQLRepr()))
+	}
 
 	if len(s.fields) == 0 {
 		sb.WriteString("Lambda('x', Get(Var('x'))")
@@ -66,6 +82,10 @@ func (f *fqlIRVisitor) Enter(in ast.Node) (ast.Node, bool) {
 	case *ast.TableName:
 		sel := f.root.(*selectIR)
 		sel.source = collectionIR(node.Name.L)
+
+	case *ast.BinaryOperationExpr:
+		sel := f.root.(*selectIR)
+		sel.sourceType = "index"
 	}
 
 	return in, false
