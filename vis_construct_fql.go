@@ -3,26 +3,26 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"strings"
+
 	"github.com/pingcap/parser/ast"
 	_ "github.com/pingcap/parser/test_driver"
-	"reflect"
-	"strings"
 )
 
 // select * from orders
 // select id, name from orders
 
-type fqlConstructor struct{
-	tableName string
-	fieldsPartStart string
-	fieldsPartEnd string
-	fields []string
+type fqlConstructor struct {
+	tableName          string
+	fieldsPartStart    string
+	fieldsPartEnd      string
+	fields             []string
 	statementTypeStart string
-	statementTypeEnd string
+	statementTypeEnd   string
 }
 
 func constructAst(rootNode *ast.StmtNode) string {
-	v := &fqlConstructor { }
+	v := &fqlConstructor{}
 	(*rootNode).Accept(v)
 
 	return joinFqlParts(v)
@@ -45,40 +45,32 @@ func joinFqlParts(v *fqlConstructor) string {
 }
 
 func (v *fqlConstructor) Enter(in ast.Node) (ast.Node, bool) {
-	if reflect.TypeOf(in).String() == "*ast.SelectStmt" {
+	switch node := in.(type) {
+	case *ast.SelectStmt:
 		v.statementTypeStart = "Map("
-	}
-
-	if reflect.TypeOf(in).String() == "*ast.FieldList" {
-		if len(in.(*ast.FieldList).Fields) == 1 && len(in.(*ast.FieldList).Fields[0].Text()) == 0 {
+	case *ast.FieldList:
+		if len(node.Fields) == 1 && len(node.Fields[0].Text()) == 0 {
 			v.fieldsPartStart = "Lambda('x', Get(Var('x'))"
 		} else {
 			v.fieldsPartStart = "Lambda('x', Let({row: Get(Var('x'))},"
 		}
-	}
-
-	if reflect.TypeOf(in).String() == "*ast.ColumnName" {
-		columnName := in.(*ast.ColumnName).Name.L
+	case *ast.ColumnName:
+		columnName := node.Name.L
 		v.fields = append(v.fields, fmt.Sprintf("%s: Select(['data','%s'], Var('row'))", columnName, columnName))
+	case *ast.TableName:
+		v.tableName = "Paginate(Documents(Collection('" + node.Name.L + "')))"
 	}
-
-	if reflect.TypeOf(in).String() == "*ast.TableName" {
-		v.tableName = "Paginate(Documents(Collection('" + in.(*ast.TableName).Name.L + "')))"
-	}
-
 	return in, false
 }
 
 func (v *fqlConstructor) Leave(in ast.Node) (ast.Node, bool) {
-	if reflect.TypeOf(in).String() == "*ast.SelectStmt" {
+	switch node := in.(type) {
+	case *ast.SelectStmt:
 		v.statementTypeEnd = ")"
-	}
-
-	if reflect.TypeOf(in).String() == "*ast.FieldList" {
-		if len(in.(*ast.FieldList).Fields) > 1 || len(in.(*ast.FieldList).Fields[0].Text()) > 0 {
+	case *ast.FieldList:
+		if len(node.Fields) > 1 || len(node.Fields[0].Text()) > 0 {
 			v.fieldsPartEnd = "))"
 		}
 	}
-
 	return in, true
 }
