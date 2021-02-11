@@ -21,8 +21,8 @@ func TestSelectMuiltipleField(t *testing.T) {
 }
 
 func TestSelectSingleFieldWithSingleExactWhere(t *testing.T) {
-	sql := "select a from c where a = 5"
-	fql := "Map(Paginate(Match(Index('c_by_a'), 5)), Lambda('x', Get(Var('x'))))"
+	sql := "select * from c where a = 5"
+	fql := "Map(Paginate(Filter(Documents(Collection('c')), Lambda('x', Equals(Select(['data', 'a'], Get(Var('x'))), 5)))), Lambda('x', Get(Var('x'))))"
 	assertSQL2FQL(t, sql, fql)
 }
 

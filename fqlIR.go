@@ -11,49 +11,56 @@ type fqlIR interface {
 	FQLRepr() string
 }
 
-type fieldIR string
+type fieldIR struct {
+	name string
+}
 
-func (f fieldIR) FQLRepr() string { return string(f) }
+func (f fieldIR) FQLRepr() string {
+	return fmt.Sprintf("Select(['data','%s'], Var('doc'))", f.name)
+}
 
 type collectionIR string
 
 func (c collectionIR) FQLRepr() string {
-	return fmt.Sprintf("Collection('%s')", c)
+	return fmt.Sprintf("Documents(Collection('%s'))", c)
 }
 
 type selectIR struct {
-	sourceType string
 	source fqlIR
-	fields []fieldIR
-	where filterIR
+	fields []*fieldIR
+	filter fqlIR
 }
 
-type filterIR struct {
-	operation string
+type eqOpIR struct {
+	leftIR  fqlIR
+	rightIR fqlIR
+}
 
-	expressionLeft *filterIR
-	expressionRight *filterIR
-
-	operandLeft string
-	operandRight string
+func (eq eqOpIR) FQLRepr() string {
+	return fmt.Sprintf("Equals(%s, %s)", eq.leftIR.FQLRepr(), eq.rightIR.FQLRepr())
 }
 
 func (s *selectIR) FQLRepr() string {
 	var sb strings.Builder
 
-	if s.sourceType == "index" {
-		sb.WriteString(fmt.Sprintf("Map(Index(Match(%s)),", s.source.FQLRepr()))
-	} else { // if it is an collection
-		sb.WriteString(fmt.Sprintf("Map(Paginate(Documents(%s)),", s.source.FQLRepr()))
+	sb.WriteString("Map(Paginate(")
+
+	if s.filter != nil {
+		filter := "Filter(%s, Lambda('x', Let({doc: Get(Var('x'))}, %s)))"
+		sb.WriteString(fmt.Sprintf(filter, s.source.FQLRepr(), s.filter.FQLRepr()))
+	} else {
+		sb.WriteString(s.source.FQLRepr())
 	}
+
+	sb.WriteString("), ")
 
 	if len(s.fields) == 0 {
 		sb.WriteString("Lambda('x', Get(Var('x'))")
 	} else {
-		sb.WriteString("Lambda('x', Let({row: Get(Var('x'))},{")
+		sb.WriteString("Lambda('x', Let({doc: Get(Var('x'))},{")
 
 		for i, f := range s.fields {
-			sb.WriteString(fmt.Sprintf("%s: Select(['data','%s'], Var('row'))", f, f))
+			sb.WriteString(fmt.Sprintf("%s: %s", f.name, f.FQLRepr()))
 			if i < len(s.fields)-1 {
 				sb.WriteString(",")
 			}
@@ -76,8 +83,9 @@ func (f *fqlIRVisitor) Enter(in ast.Node) (ast.Node, bool) {
 		f.root = &selectIR{}
 
 	case *ast.ColumnName:
+		field := &fieldIR{node.Name.L}
 		sel := f.root.(*selectIR)
-		sel.fields = append(sel.fields, fieldIR(node.Name.L))
+		sel.fields = append(sel.fields, field)
 
 	case *ast.TableName:
 		sel := f.root.(*selectIR)
@@ -85,7 +93,7 @@ func (f *fqlIRVisitor) Enter(in ast.Node) (ast.Node, bool) {
 
 	case *ast.BinaryOperationExpr:
 		sel := f.root.(*selectIR)
-		sel.sourceType = "index"
+		sel.filter = &eqOpIR{}
 	}
 
 	return in, false
