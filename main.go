@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"fmt"
 	"github.com/pingcap/parser"
 	"github.com/pingcap/parser/ast"
@@ -20,10 +21,18 @@ func parse(sql string) (*ast.StmtNode, error) {
 }
 
 func main() {
-	astNode, err := parse("SELECT a, b FROM t")
+	if len(os.Args) != 2 {
+		fmt.Println("usage: colx 'SQL statement'")
+		return
+	}
+	sql := os.Args[1]
+	astNode, err := parse(sql)
+
 	if err != nil {
 		fmt.Printf("parse error: %v\n", err.Error())
 		return
 	}
-	fmt.Printf("%v\n", *astNode)
+	printAst(astNode)
+	fmt.Printf("Columns: %v\n", extractColumns(astNode))
 }
+
