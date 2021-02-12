@@ -11,7 +11,7 @@ type fieldIR struct {
 }
 
 func (f fieldIR) FQLRepr() string {
-	return fmt.Sprintf("Select(['data','%s'], Var('doc'))", f.name)
+	return fmt.Sprintf("Select(['data','%s'], Var('doc'), null)", f.name)
 }
 
 type fieldVisitor struct {
