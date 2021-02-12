@@ -26,17 +26,14 @@ func (v *setFieldVisitor) Enter(in ast.Node) (ast.Node, bool) {
 	}
 
 	switch node := in.(type) {
-	case ast.ValueExpr:
-		next := &valueVisitor{}
-		_, _ = node.Accept(next)
-		v.root.value = next.root
-		return in, true
+	case *ast.Assignment:
+		next1 := &fqlVisitor{}
+		_, _ = node.Expr.Accept(next1)
+		v.root.value = next1.root
 
-	case *ast.ColumnName:
-		next := &fieldVisitor{}
-		_, _ = node.Accept(next)
-		v.root.field = next.root
-
+		next2 := &fieldVisitor{}
+		_, _ = node.Column.Accept(next2)
+		v.root.field = next2.root
 		return in, true
 	default:
 		return in, false
