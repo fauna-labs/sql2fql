@@ -25,6 +25,10 @@ func (bin binaryOperatorIR) FQLRepr() string {
 		return fmt.Sprintf("LT(%s, %s)", bin.leftIR.FQLRepr(), bin.rightIR.FQLRepr())
 	case LTE:
 		return fmt.Sprintf("LTE(%s, %s)", bin.leftIR.FQLRepr(), bin.rightIR.FQLRepr())
+	case LOGIC_AND:
+		return fmt.Sprintf("And(%s, %s)", bin.leftIR.FQLRepr(), bin.rightIR.FQLRepr())
+	case LOGIC_OR:
+		return fmt.Sprintf("Or(%s, %s)", bin.leftIR.FQLRepr(), bin.rightIR.FQLRepr())
 	}
 	panic("Unsupported binary operation type")
 }
@@ -66,6 +70,10 @@ func getOperation(op opcode.Op) operation {
 		return LT
 	case opcode.LE:
 		return LTE
+	case opcode.LogicAnd:
+		return LOGIC_AND
+	case opcode.LogicOr:
+		return LOGIC_OR
 	}
 	return ERR
 }
@@ -77,4 +85,6 @@ const (
 	GTE = 2
 	LT  = 3
 	LTE = 4
+	LOGIC_AND = 5
+	LOGIC_OR = 6
 )

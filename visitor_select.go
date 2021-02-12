@@ -29,11 +29,9 @@ func (s *selectIR) FQLRepr() string {
 	case *indexIR:
 		if s.filter != nil {
 			b := s.filter.(*binaryOperatorIR)
-			if b.op != EQ {
-				panic("indexes only works with equality operators")
-			}
-
-			sb.WriteString(fmt.Sprintf("Match(%s, %s)", s.source.FQLRepr(), b.rightIR.FQLRepr()))
+			var res []string
+			res = indexValues(b, res)
+			sb.WriteString(fmt.Sprintf("Match(%s, %s)", s.source.FQLRepr(), strings.Join(res, ", ")))
 		} else {
 			sb.WriteString(fmt.Sprintf("Match(%s)", s.source.FQLRepr()))
 		}
@@ -58,6 +56,19 @@ func (s *selectIR) FQLRepr() string {
 
 	sb.WriteString(")")
 	return sb.String()
+}
+
+func indexValues(b *binaryOperatorIR, res []string) []string {
+	switch b.op {
+	case EQ:
+		res = append(res, b.rightIR.FQLRepr())
+	case LOGIC_AND:
+		res = indexValues(b.leftIR.(*binaryOperatorIR), res)
+		res = indexValues(b.rightIR.(*binaryOperatorIR), res)
+	default:
+		panic("indexes only works with equality operators")
+	}
+	return res
 }
 
 type selectVisitor struct {
