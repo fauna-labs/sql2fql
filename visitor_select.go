@@ -29,9 +29,7 @@ func (s *selectIR) FQLRepr() string {
 	case *indexIR:
 		if s.filter != nil {
 			b := s.filter.(*binaryOperatorIR)
-			var res []string
-			res = indexValues(b, res)
-			sb.WriteString(fmt.Sprintf("Match(%s, %s)", s.source.FQLRepr(), strings.Join(res, ", ")))
+			sb.WriteString(fmt.Sprintf("Match(%s, %s)", s.source.FQLRepr(), strings.Join(indexValues(b, nil), ", ")))
 		} else {
 			sb.WriteString(fmt.Sprintf("Match(%s)", s.source.FQLRepr()))
 		}
