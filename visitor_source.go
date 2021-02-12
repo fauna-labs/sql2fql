@@ -30,9 +30,9 @@ func (v *sourceVisitor) Enter(in ast.Node) (ast.Node, bool) {
 	switch node := in.(type) {
 	case *ast.TableName:
 		if len(node.IndexHints) > 0 {
-			v.root = &indexIR{node.IndexHints[0].IndexNames[0].L}
+			v.root = &indexIR{node.IndexHints[0].IndexNames[0].O}
 		} else {
-			v.root = &collectionIR{node.Name.L}
+			v.root = &collectionIR{node.Name.O}
 		}
 		return in, true
 	default:

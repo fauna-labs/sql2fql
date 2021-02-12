@@ -22,7 +22,7 @@ type fieldVisitor struct {
 func (v *fieldVisitor) Enter(in ast.Node) (ast.Node, bool) {
 	switch node := in.(type) {
 	case *ast.ColumnName:
-		v.root = &fieldIR{node.Name.L}
+		v.root = &fieldIR{node.Name.O}
 		return in, true
 	default:
 		return in, false
