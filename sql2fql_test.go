@@ -51,7 +51,7 @@ func TestSelectWithAnIndexAndWhereClause(t *testing.T) {
 }
 
 func assertSQL2FQL(t *testing.T, sql, fql string, optimize bool) {
-	ast, err := parse(sql)
+	ast, err := parseSql(sql)
 	if err != nil {
 		t.Error(err)
 	}
