@@ -16,7 +16,7 @@ func TestSimpleOptimizedSelect(t *testing.T) {
 
 func TestSelectSingleField(t *testing.T) {
 	sql := "select a from b"
-	fql := "Map(Paginate(Documents(Collection('b'))), Lambda('x', Let({doc: Get(Var('x'))},{a: Select(['data','a'], Var('doc'))})))"
+	fql := "Map(Paginate(Documents(Collection('b'))), Lambda('x', Let({doc: Get(Var('x'))},{a: Select(['data','a'], Var('doc'), null)})))"
 	assertSQL2FQL(t, sql, fql, false)
 }
 
@@ -28,55 +28,55 @@ func TestUpdateSingleField(t *testing.T) {
 
 func TestSelectMuiltipleField(t *testing.T) {
 	sql := "select a, b from c"
-	fql := "Map(Paginate(Documents(Collection('c'))), Lambda('x', Let({doc: Get(Var('x'))},{a: Select(['data','a'], Var('doc')),b: Select(['data','b'], Var('doc'))})))"
+	fql := "Map(Paginate(Documents(Collection('c'))), Lambda('x', Let({doc: Get(Var('x'))},{a: Select(['data','a'], Var('doc'), null),b: Select(['data','b'], Var('doc'), null)})))"
 	assertSQL2FQL(t, sql, fql, false)
 }
 
 func TestSelectSingleFieldWithSingleExactWhereEqual(t *testing.T) {
 	sql := "select * from c where a = 5"
-	fql := "Map(Paginate(Filter(Documents(Collection('c')), Lambda('x', Let({doc: Get(Var('x'))}, Equals(Select(['data','a'], Var('doc')), 5))))), Lambda('x', Get(Var('x'))))"
+	fql := "Map(Paginate(Filter(Documents(Collection('c')), Lambda('x', Let({doc: Get(Var('x'))}, Equals(Select(['data','a'], Var('doc'), null), 5))))), Lambda('x', Get(Var('x'))))"
 	assertSQL2FQL(t, sql, fql, false)
 }
 
 func TestSelectSingleFieldWithSingleExactWhereGreater(t *testing.T) {
 	sql := "select * from c where a > 5"
-	fql := "Map(Paginate(Filter(Documents(Collection('c')), Lambda('x', Let({doc: Get(Var('x'))}, GT(Select(['data','a'], Var('doc')), 5))))), Lambda('x', Get(Var('x'))))"
+	fql := "Map(Paginate(Filter(Documents(Collection('c')), Lambda('x', Let({doc: Get(Var('x'))}, GT(Select(['data','a'], Var('doc'), null), 5))))), Lambda('x', Get(Var('x'))))"
 	assertSQL2FQL(t, sql, fql, false)
 }
 
 func TestSelectSingleFieldWithSingleExactWhereLesser(t *testing.T) {
 	sql := "select * from c where a < 5"
-	fql := "Map(Paginate(Filter(Documents(Collection('c')), Lambda('x', Let({doc: Get(Var('x'))}, LT(Select(['data','a'], Var('doc')), 5))))), Lambda('x', Get(Var('x'))))"
+	fql := "Map(Paginate(Filter(Documents(Collection('c')), Lambda('x', Let({doc: Get(Var('x'))}, LT(Select(['data','a'], Var('doc'), null), 5))))), Lambda('x', Get(Var('x'))))"
 	assertSQL2FQL(t, sql, fql, false)
 }
 
 func TestSelectSingleFieldWithSingleExactWhereEqualString(t *testing.T) {
 	sql := "select * from c where a = 'hello'"
-	fql := "Map(Paginate(Filter(Documents(Collection('c')), Lambda('x', Let({doc: Get(Var('x'))}, Equals(Select(['data','a'], Var('doc')), 'hello'))))), Lambda('x', Get(Var('x'))))"
+	fql := "Map(Paginate(Filter(Documents(Collection('c')), Lambda('x', Let({doc: Get(Var('x'))}, Equals(Select(['data','a'], Var('doc'), null), 'hello'))))), Lambda('x', Get(Var('x'))))"
 	assertSQL2FQL(t, sql, fql, false)
 }
 
 func TestSelectSingleFieldWithSingleExactWhereEqualFloatingPoint(t *testing.T) {
 	sql := "select * from c where a = 5.0"
-	fql := "Map(Paginate(Filter(Documents(Collection('c')), Lambda('x', Let({doc: Get(Var('x'))}, Equals(Select(['data','a'], Var('doc')), 5.0))))), Lambda('x', Get(Var('x'))))"
+	fql := "Map(Paginate(Filter(Documents(Collection('c')), Lambda('x', Let({doc: Get(Var('x'))}, Equals(Select(['data','a'], Var('doc'), null), 5.0))))), Lambda('x', Get(Var('x'))))"
 	assertSQL2FQL(t, sql, fql, false)
 }
 
 func TestSelectSingleFieldWithSingleExactWhereEqualWithLogicalAnd(t *testing.T) {
 	sql := "select * from c where a = 5 and b = 6"
-	fql := "Map(Paginate(Filter(Documents(Collection('c')), Lambda('x', Let({doc: Get(Var('x'))}, And(Equals(Select(['data','a'], Var('doc')), 5), Equals(Select(['data','b'], Var('doc')), 6)))))), Lambda('x', Get(Var('x'))))"
+	fql := "Map(Paginate(Filter(Documents(Collection('c')), Lambda('x', Let({doc: Get(Var('x'))}, And(Equals(Select(['data','a'], Var('doc'), null), 5), Equals(Select(['data','b'], Var('doc'), null), 6)))))), Lambda('x', Get(Var('x'))))"
 	assertSQL2FQL(t, sql, fql, false)
 }
 
 func TestSelectSingleFieldWithSingleExactWhereEqualWithLogicalOr(t *testing.T) {
 	sql := "select * from c where a = 5 or b = 6"
-	fql := "Map(Paginate(Filter(Documents(Collection('c')), Lambda('x', Let({doc: Get(Var('x'))}, Or(Equals(Select(['data','a'], Var('doc')), 5), Equals(Select(['data','b'], Var('doc')), 6)))))), Lambda('x', Get(Var('x'))))"
+	fql := "Map(Paginate(Filter(Documents(Collection('c')), Lambda('x', Let({doc: Get(Var('x'))}, Or(Equals(Select(['data','a'], Var('doc'), null), 5), Equals(Select(['data','b'], Var('doc'), null), 6)))))), Lambda('x', Get(Var('x'))))"
 	assertSQL2FQL(t, sql, fql, false)
 }
 
 func TestSelectSingleFieldWithSingleExactWhereGreaterFloatingPoint(t *testing.T) {
 	sql := "select * from c where a > 5.0"
-	fql := "Map(Paginate(Filter(Documents(Collection('c')), Lambda('x', Let({doc: Get(Var('x'))}, GT(Select(['data','a'], Var('doc')), 5.0))))), Lambda('x', Get(Var('x'))))"
+	fql := "Map(Paginate(Filter(Documents(Collection('c')), Lambda('x', Let({doc: Get(Var('x'))}, GT(Select(['data','a'], Var('doc'), null), 5.0))))), Lambda('x', Get(Var('x'))))"
 	assertSQL2FQL(t, sql, fql, false)
 }
 
@@ -106,7 +106,7 @@ func TestSelectWithAnIndexAndWhereClauseWith3LogicalAnd(t *testing.T) {
 
 func TestDeleteWithSingleExactWhereEqual(t *testing.T) {
 	sql := "delete from c where a = 5"
-	fql := "Map(Paginate(Filter(Documents(Collection('c')), Lambda('x', Let({doc: Get(Var('x'))}, Equals(Select(['data','a'], Var('doc')), 5))))), Lambda('x', Delete(Var('x'))))"
+	fql := "Map(Paginate(Filter(Documents(Collection('c')), Lambda('x', Let({doc: Get(Var('x'))}, Equals(Select(['data','a'], Var('doc'), null), 5))))), Lambda('x', Delete(Var('x'))))"
 	assertSQL2FQL(t, sql, fql, false)
 }
 
