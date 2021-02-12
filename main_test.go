@@ -164,6 +164,18 @@ func TestCreateCollection(t *testing.T) {
 	assertSQL2FQL(t, sql, fql, false)
 }
 
+func TestCreateIndex(t *testing.T) {
+	sql := "create index a on b (d, e)"
+	fql := "CreateIndex({ name: 'a', source: Collection('b'), unique: false, terms: [{field: ['data', 'd']}, {field: ['data', 'e']}]})"
+	assertSQL2FQL(t, sql, fql, false)
+}
+
+func TestCreateUniqueIndex(t *testing.T) {
+	sql := "create unique index a on b (d, e)"
+	fql := "CreateIndex({ name: 'a', source: Collection('b'), unique: true, terms: [{field: ['data', 'd']}, {field: ['data', 'e']}]})"
+	assertSQL2FQL(t, sql, fql, false)
+}
+
 func assertSQL2FQL(t *testing.T, sql, fql string, optimize bool) {
 	ast, err := parseSql(sql)
 	if err != nil {

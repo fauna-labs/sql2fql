@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/pingcap/parser/ast"
 	"github.com/pingcap/parser/test_driver"
 )
