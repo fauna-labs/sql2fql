@@ -26,6 +26,12 @@ func TestUpdateSingleField(t *testing.T) {
 	assertSQL2FQL(t, sql, fql, false)
 }
 
+func TestUpdateSingleFieldWithSingleExactWhereEqual(t *testing.T) {
+	sql := "update b SET a=5 where a=7"
+	fql := "Map(Paginate(Filter(Documents(Collection('b')), Lambda('x', Let({doc: Get(Var('x'))}, Equals(Select(['data','a'], Var('doc'), null), 7))))), Lambda('x', Update(Var('x'), {data:{a:5}})))"
+	assertSQL2FQL(t, sql, fql, false)
+}
+
 func TestSelectMuiltipleField(t *testing.T) {
 	sql := "select a, b from c"
 	fql := "Map(Paginate(Documents(Collection('c'))), Lambda('x', Let({doc: Get(Var('x'))},{a: Select(['data','a'], Var('doc'), null),b: Select(['data','b'], Var('doc'), null)})))"
