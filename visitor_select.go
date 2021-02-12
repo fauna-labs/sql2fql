@@ -9,9 +9,10 @@ import (
 
 type selectIR struct {
 	statement statementType
-	source fqlIR
-	fields []*fieldIR
-	filter fqlIR
+	source    fqlIR
+	fields    []*fieldIR
+	setFields []*setFieldIR
+	filter    fqlIR
 }
 
 type statementType int
@@ -40,27 +41,21 @@ func (s *selectIR) FQLRepr() string {
 
 	sb.WriteString("), ")
 
-	action := ""
 	switch s.statement {
 	case SELECT:
-		action = "Get"
+		fallthrough
 	case DELETE:
-		action = "Delete"
-	}
+		writeSelectDeleteFields(s, &sb)
+	case UPDATE:
+		if len(s.setFields) == 0 {
+			panic("UPDATE without SET")
+		} else {
+			sb.WriteString(fmt.Sprintf("Lambda('x', Update({"))
+			// write fields.
+			// Update(Var('x'), {data:{a:5}})
 
-	if len(s.fields) == 0 {
-		sb.WriteString(fmt.Sprintf("Lambda('x', %s(Var('x')))", action))
-	} else {
-		sb.WriteString(fmt.Sprintf("Lambda('x', Let({doc: %s(Var('x'))},{", action))
-
-		for i, f := range s.fields {
-			sb.WriteString(fmt.Sprintf("%s: %s", f.name, f.FQLRepr()))
-			if i < len(s.fields)-1 {
-				sb.WriteString(",")
-			}
+			sb.WriteString("}))")
 		}
-
-		sb.WriteString("}))")
 	}
 
 	sb.WriteString(")")
@@ -87,24 +82,13 @@ type selectVisitor struct {
 func (v *selectVisitor) Enter(in ast.Node) (ast.Node, bool) {
 	switch node := in.(type) {
 	case *ast.SelectStmt:
-		v.root = &selectIR{}
-		source := &sourceVisitor{}
-		node.From.Accept(source)
-		v.root.source = source.root
-
-		for _, fNode := range node.Fields.Fields {
-			if fNode.Expr != nil {
-				field := &fieldVisitor{}
-				fNode.Expr.Accept(field)
-				v.root.fields = append(v.root.fields, field.root)
-			}
-		}
-
-		if node.Where != nil {
-			filter := &binaryOperatorVisitor{}
-			node.Where.Accept(filter)
-			v.root.filter = filter.root
-		}
+		handleSelect(v, node.From, node.Where, node.Fields.Fields, SELECT)
+		return in, true
+	case *ast.DeleteStmt:
+		handleSelect(v, node.TableRefs, node.Where, []*ast.SelectField{}, DELETE)
+		return in, true
+	case *ast.UpdateStmt:
+		handleUpdate(v, node.TableRefs, node.Where, node.List)
 		return in, true
 	default:
 		return in, false
@@ -115,7 +99,74 @@ func (v *selectVisitor) Leave(in ast.Node) (ast.Node, bool) {
 	return in, true
 }
 
+func handleSelect(v *selectVisitor, from *ast.TableRefsClause, where ast.ExprNode, fields []*ast.SelectField, t statementType) {
+	v.root = &selectIR{statement: t}
+	source := &sourceVisitor{}
+	from.Accept(source)
+	v.root.source = source.root
+
+	for _, fNode := range fields {
+		if fNode.Expr != nil {
+			field := &fieldVisitor{}
+			fNode.Expr.Accept(field)
+			v.root.fields = append(v.root.fields, field.root)
+		}
+	}
+
+	if where != nil {
+		filter := &binaryOperatorVisitor{}
+		where.Accept(filter)
+		v.root.filter = filter.root
+	}
+}
+
+func handleUpdate(v *selectVisitor, from *ast.TableRefsClause, where ast.ExprNode, setFields []*ast.Assignment) {
+	v.root = &selectIR{statement: UPDATE}
+	source := &sourceVisitor{}
+	from.Accept(source)
+	v.root.source = source.root
+
+	for _, fNode := range setFields {
+		setField := &setFieldVisitor{}
+		fNode.Accept(setField)
+		fmt.Println(setField)
+		v.root.setFields = append(v.root.setFields, setField.root)
+
+	}
+
+	if where != nil {
+		filter := &binaryOperatorVisitor{}
+		where.Accept(filter)
+		v.root.filter = filter.root
+	}
+}
+
+func writeSelectDeleteFields(s *selectIR, sb *strings.Builder) {
+	action := ""
+	switch s.statement {
+	case SELECT:
+		action = "Get"
+	case DELETE:
+		action = "Delete"
+	}
+	if len(s.fields) == 0 {
+		sb.WriteString(fmt.Sprintf("Lambda('x', %s(Var('x')))", action))
+	} else {
+		sb.WriteString(fmt.Sprintf("Lambda('x', Let({doc: %s(Var('x'))},{", action))
+
+		for i, f := range s.fields {
+			sb.WriteString(fmt.Sprintf("%s: %s", f.name, f.FQLRepr()))
+			if i < len(s.fields)-1 {
+				sb.WriteString(",")
+			}
+		}
+
+		sb.WriteString("}))")
+	}
+}
+
 const (
 	SELECT = 0
 	DELETE = 1
+	UPDATE = 2
 )

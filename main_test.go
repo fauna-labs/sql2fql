@@ -20,6 +20,12 @@ func TestSelectSingleField(t *testing.T) {
 	assertSQL2FQL(t, sql, fql, false)
 }
 
+func TestUpdateSingleField(t *testing.T) {
+	sql := "update b SET a=5"
+	fql := "Map(Paginate(Documents(Collection('b'))), Lambda('x', Update(Var('x'), {data:{a:5}})))"
+	assertSQL2FQL(t, sql, fql, false)
+}
+
 func TestSelectMuiltipleField(t *testing.T) {
 	sql := "select a, b from c"
 	fql := "Map(Paginate(Documents(Collection('c'))), Lambda('x', Let({doc: Get(Var('x'))},{a: Select(['data','a'], Var('doc')),b: Select(['data','b'], Var('doc'))})))"

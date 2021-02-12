@@ -31,6 +31,16 @@ func (v *fqlVisitor) Enter(in ast.Node) (res ast.Node, skip bool) {
 		res, skip = node.Accept(next)
 		v.root = next.root
 
+	case *ast.DeleteStmt:
+		next := &selectVisitor{}
+		res, skip = node.Accept(next)
+		v.root = next.root
+
+	case *ast.UpdateStmt:
+		next := &selectVisitor{}
+		res, skip = node.Accept(next)
+		v.root = next.root
+
 	case *ast.ColumnName:
 		next := &fieldVisitor{}
 		res, skip = node.Accept(next)
