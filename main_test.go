@@ -38,6 +38,24 @@ func TestSelectSingleFieldWithSingleExactWhereGreater(t *testing.T) {
 	assertSQL2FQL(t, sql, fql, false)
 }
 
+func TestSelectSingleFieldWithSingleExactWhereEqualString(t *testing.T) {
+	sql := "select * from c where a = 'hello'"
+	fql := "Map(Paginate(Filter(Documents(Collection('c')), Lambda('x', Let({doc: Get(Var('x'))}, Equals(Select(['data','a'], Var('doc')), 'hello'))))), Lambda('x', Get(Var('x'))))"
+	assertSQL2FQL(t, sql, fql, false)
+}
+
+func TestSelectSingleFieldWithSingleExactWhereEqualFloatingPoint(t *testing.T) {
+	sql := "select * from c where a = 5.0"
+	fql := "Map(Paginate(Filter(Documents(Collection('c')), Lambda('x', Let({doc: Get(Var('x'))}, Equals(Select(['data','a'], Var('doc')), 5.0))))), Lambda('x', Get(Var('x'))))"
+	assertSQL2FQL(t, sql, fql, false)
+}
+
+func TestSelectSingleFieldWithSingleExactWhereGreaterFloatingPoint(t *testing.T) {
+	sql := "select * from c where a > 5.0"
+	fql := "Map(Paginate(Filter(Documents(Collection('c')), Lambda('x', Let({doc: Get(Var('x'))}, GT(Select(['data','a'], Var('doc')), 5.0))))), Lambda('x', Get(Var('x'))))"
+	assertSQL2FQL(t, sql, fql, false)
+}
+
 func TestSelectWithAnIndex(t *testing.T) {
 	sql := "select * from c use index (foo)"
 	fql := "Map(Paginate(Match(Index('foo'))), Lambda('x', Get(Var('x'))))"

@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-
 	"github.com/pingcap/parser/ast"
+	"github.com/pingcap/parser/test_driver"
 )
 
 type valueIR string
@@ -19,8 +19,13 @@ type valueVisitor struct {
 func (v *valueVisitor) Enter(in ast.Node) (ast.Node, bool) {
 	switch node := in.(type) {
 	case ast.ValueExpr:
-		switch value := node.GetValue().(type) {
+		value := node.GetValue()
+		switch value.(type) {
 		case int64:
+			v.root = valueIR(fmt.Sprint(value))
+		case string:
+			v.root = valueIR(fmt.Sprintf("'%s'", value))
+		case *test_driver.MyDecimal:
 			v.root = valueIR(fmt.Sprint(value))
 		default:
 			panic("scalar value not supported")
