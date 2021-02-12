@@ -1,13 +1,15 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
+	"os"
+	"os/exec"
+
 	"github.com/pingcap/parser"
 	"github.com/pingcap/parser/ast"
 	_ "github.com/pingcap/parser/test_driver"
 	"github.com/spf13/cobra"
-	"os"
-	"os/exec"
 )
 
 const art = `
@@ -19,9 +21,9 @@ const art = `
      \/   |__|             \/         |__|     `
 
 var rootCommand = &cobra.Command{
-	Use:	"sql2fql",
-	Short:	art,
-	Run: run,
+	Use:   "sql2fql",
+	Short: art,
+	Run:   run,
 }
 
 const shellCommand = "fauna"
@@ -41,7 +43,7 @@ func main() {
 	}
 }
 
-func run (cmd *cobra.Command, _ []string) {
+func run(cmd *cobra.Command, _ []string) {
 	fql := transpileSqlToFql(sql)
 	fmt.Println(fql)
 	if key != "" {
@@ -53,7 +55,7 @@ func run (cmd *cobra.Command, _ []string) {
 	}
 }
 
-func transpileSqlToFql (sql string) string {
+func transpileSqlToFql(sql string) string {
 	node, err := parseSql(sql)
 	if err != nil {
 		panic(fmt.Sprintf("error parsing sql: %s", err.Error()))
@@ -86,12 +88,16 @@ func shellInstalled() bool {
 }
 
 func executeFql(fql string, key string) string {
-	cmd := exec.Command(shellCommand, "eval", fmt.Sprintf("--secret=\"%s\"", key), "--format=shell", fmt.Sprintf("\"%s\"", fql))
+	var out bytes.Buffer
+
+	cmd := exec.Command(shellCommand, "eval", fmt.Sprintf("--secret=%s", key), "--format=shell", fql)
 	fmt.Println(cmd.String())
+
+	cmd.Stdout = &out
 	err := cmd.Run()
 	if err != nil {
 		panic(fmt.Sprintf("error executing fql: %s", err))
 	}
-	out, _ := cmd.Output()
-	return string(out)
+
+	return out.String()
 }
