@@ -41,7 +41,12 @@ func transpileSqlToFql (cmd *cobra.Command, _ []string) {
 	if err != nil {
 		panic(fmt.Sprintf("error parsing sql: %s", err.Error()))
 	}
-	ir := constructIR(node)
+	var ir fqlIR
+	if optimize {
+		ir = constructIROptimized(node)
+	} else {
+		ir = constructIR(node)
+	}
 	fmt.Println(ir.FQLRepr())
 }
 
