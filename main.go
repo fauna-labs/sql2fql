@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"github.com/fatih/color"
 	"os"
 	"os/exec"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/pingcap/parser/ast"
 	_ "github.com/pingcap/parser/test_driver"
 	"github.com/spf13/cobra"
+	"github.com/jedib0t/go-pretty/v6/table"
 )
 
 const art = `
@@ -31,12 +33,17 @@ const shellCommand = "fauna"
 var sql string
 var optimize bool
 var key string
+var colors bool
+var tables bool
 
 func main() {
 	rootCommand.Flags().StringVarP(&sql, "sql", "s", "", "the SQL shellCommand")
 	rootCommand.MarkFlagRequired("sql")
-	rootCommand.Flags().BoolVarP(&optimize, "optimize", "o", false, "whether to use indexes")
+	rootCommand.Flags().BoolVarP(&optimize, "optimize", "o", false, "whether to optimize queries using indexes")
 	rootCommand.Flags().StringVarP(&key, "key", "k", "", "the key to use to run the query")
+	rootCommand.Flags().BoolVarP(&colors, "color", "c", true, "whether to color output")
+	rootCommand.Flags().BoolVarP(&tables, "tables", "b", false, "whether to put output into tables")
+
 	if err := rootCommand.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
@@ -44,15 +51,57 @@ func main() {
 }
 
 func run(cmd *cobra.Command, _ []string) {
+	t := table.NewWriter()
+	if !tables {
+		t.SetStyle(table.Style{
+			Name: "NoBorders",
+			Box: table.BoxStyle{
+				BottomLeft:       " ",
+				BottomRight:      " ",
+				BottomSeparator:  " ",
+				Left:             " ",
+				LeftSeparator:    " ",
+				MiddleHorizontal: " ",
+				MiddleSeparator:  " ",
+				MiddleVertical:   " ",
+				PaddingLeft:      " ",
+				PaddingRight:     " ",
+				Right:            " ",
+				RightSeparator:   " ",
+				TopLeft:          " ",
+				TopRight:         " ",
+				TopSeparator:     " ",
+				UnfinishedRow:    " ",
+			},
+		})
+	}
+
+	if colors {
+		t.AppendRow(table.Row{"SQL", color.CyanString(sql)})
+	} else {
+		t.AppendRow(table.Row{"SQL", sql})
+	}
 	fql := transpileSqlToFql(sql)
-	fmt.Println(fql)
+	t.AppendSeparator()
+	if colors {
+		t.AppendRow(table.Row{"FQL", color.MagentaString(fql)})
+	} else {
+		t.AppendRow(table.Row{"FQL", fql})
+	}
 	if key != "" {
 		if !shellInstalled() {
 			panic(fmt.Sprintf("fauna shell isn't installed or configured correctly"))
 		}
 		out := executeFql(fql, key)
-		fmt.Println(out)
+		t.AppendSeparator()
+		if colors {
+			t.AppendRow(table.Row{"Output", color.GreenString(out)})
+		} else {
+			t.AppendRow(table.Row{"Output", out})
+		}
 	}
+	fmt.Println()
+	fmt.Println(t.Render())
 }
 
 func transpileSqlToFql(sql string) string {
@@ -89,15 +138,11 @@ func shellInstalled() bool {
 
 func executeFql(fql string, key string) string {
 	var out bytes.Buffer
-
 	cmd := exec.Command(shellCommand, "eval", fmt.Sprintf("--secret=%s", key), "--format=shell", fql)
-	fmt.Println(cmd.String())
-
 	cmd.Stdout = &out
 	err := cmd.Run()
 	if err != nil {
 		panic(fmt.Sprintf("error executing fql: %s", err))
 	}
-
 	return out.String()
 }
