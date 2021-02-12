@@ -98,6 +98,12 @@ func TestSelectWithAnIndexAndWhereClauseWith3LogicalAnd(t *testing.T) {
 	assertSQL2FQL(t, sql, fql, false)
 }
 
+func TestDeleteWithSingleExactWhereEqual(t *testing.T) {
+	sql := "delete from c where a = 5"
+	fql := "Map(Paginate(Filter(Documents(Collection('c')), Lambda('x', Let({doc: Get(Var('x'))}, Equals(Select(['data','a'], Var('doc')), 5))))), Lambda('x', Delete(Var('x'))))"
+	assertSQL2FQL(t, sql, fql, false)
+}
+
 func assertSQL2FQL(t *testing.T, sql, fql string, optimize bool) {
 	ast, err := parseSql(sql)
 	if err != nil {

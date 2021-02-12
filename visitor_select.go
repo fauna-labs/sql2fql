@@ -8,10 +8,13 @@ import (
 )
 
 type selectIR struct {
+	statement statementType
 	source fqlIR
 	fields []*fieldIR
 	filter fqlIR
 }
+
+type statementType int
 
 func (s *selectIR) FQLRepr() string {
 	var sb strings.Builder
@@ -37,10 +40,18 @@ func (s *selectIR) FQLRepr() string {
 
 	sb.WriteString("), ")
 
+	action := ""
+	switch s.statement {
+	case SELECT:
+		action = "Get"
+	case DELETE:
+		action = "Delete"
+	}
+
 	if len(s.fields) == 0 {
-		sb.WriteString("Lambda('x', Get(Var('x')))")
+		sb.WriteString(fmt.Sprintf("Lambda('x', %s(Var('x')))", action))
 	} else {
-		sb.WriteString("Lambda('x', Let({doc: Get(Var('x'))},{")
+		sb.WriteString(fmt.Sprintf("Lambda('x', Let({doc: %s(Var('x'))},{", action))
 
 		for i, f := range s.fields {
 			sb.WriteString(fmt.Sprintf("%s: %s", f.name, f.FQLRepr()))
@@ -77,7 +88,6 @@ func (v *selectVisitor) Enter(in ast.Node) (ast.Node, bool) {
 	switch node := in.(type) {
 	case *ast.SelectStmt:
 		v.root = &selectIR{}
-
 		source := &sourceVisitor{}
 		node.From.Accept(source)
 		v.root.source = source.root
@@ -104,3 +114,8 @@ func (v *selectVisitor) Enter(in ast.Node) (ast.Node, bool) {
 func (v *selectVisitor) Leave(in ast.Node) (ast.Node, bool) {
 	return in, true
 }
+
+const (
+	SELECT = 0
+	DELETE = 1
+)
