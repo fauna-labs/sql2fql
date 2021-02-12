@@ -165,7 +165,7 @@ func writeUpdateFields(s *selectIR, sb *strings.Builder) {
 		for i, f := range s.setFields {
 			sb.WriteString(f.FQLRepr())
 
-			if i < len(s.fields)-1 {
+			if i < len(s.setFields)-1 {
 				sb.WriteString(",")
 			}
 		}
