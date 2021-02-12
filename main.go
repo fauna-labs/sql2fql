@@ -24,10 +24,12 @@ var rootCommand = &cobra.Command{
 }
 
 var sql string
+var optimize bool
 
 func main() {
 	rootCommand.Flags().StringVarP(&sql, "sql", "s", "", "the SQL command")
 	rootCommand.MarkFlagRequired("sql")
+	rootCommand.Flags().BoolVarP(&optimize, "optimize", "o", false, "whether to use indexes")
 	if err := rootCommand.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
