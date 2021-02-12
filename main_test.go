@@ -22,13 +22,19 @@ func TestSelectSingleField(t *testing.T) {
 
 func TestUpdateSingleField(t *testing.T) {
 	sql := "update b SET a=5"
-	fql := "Map(Paginate(Documents(Collection('b'))), Lambda('x', Update(Var('x'), {data:{a:5}})))"
+	fql := "Map(Paginate(Documents(Collection('b'))), Lambda('x', Let({doc: Get(Var('x'))}, Update(Var('x'), {data:{a:5}}))))"
 	assertSQL2FQL(t, sql, fql, false)
 }
 
 func TestUpdateSingleFieldWithSingleExactWhereEqual(t *testing.T) {
 	sql := "update b SET a=5 where a=7"
-	fql := "Map(Paginate(Filter(Documents(Collection('b')), Lambda('x', Let({doc: Get(Var('x'))}, Equals(Select(['data','a'], Var('doc'), null), 7))))), Lambda('x', Update(Var('x'), {data:{a:5}})))"
+	fql := "Map(Paginate(Filter(Documents(Collection('b')), Lambda('x', Let({doc: Get(Var('x'))}, Equals(Select(['data','a'], Var('doc'), null), 7))))), Lambda('x', Let({doc: Get(Var('x'))}, Update(Var('x'), {data:{a:5}}))))"
+	assertSQL2FQL(t, sql, fql, false)
+}
+
+func TestUpdateSingleFieldWithExpression(t *testing.T) {
+	sql := "update b SET a=a+5"
+	fql := "Map(Paginate(Documents(Collection('b'))), Lambda('x', Let({doc: Get(Var('x'))}, Update(Var('x'), {data:{a:Sum([Select(['data','a'], Var('doc'), null), 5])}}))))"
 	assertSQL2FQL(t, sql, fql, false)
 }
 

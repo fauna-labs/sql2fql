@@ -15,6 +15,8 @@ type binaryOperatorIR struct {
 
 func (bin binaryOperatorIR) FQLRepr() string {
 	switch bin.op {
+	case SUM:
+		return fmt.Sprintf("Sum([%s, %s])", bin.leftIR.FQLRepr(), bin.rightIR.FQLRepr())
 	case EQ:
 		return fmt.Sprintf("Equals(%s, %s)", bin.leftIR.FQLRepr(), bin.rightIR.FQLRepr())
 	case GT:
@@ -60,6 +62,8 @@ type operation int
 
 func getOperation(op opcode.Op) operation {
 	switch op {
+	case opcode.Plus:
+		return SUM
 	case opcode.EQ:
 		return EQ
 	case opcode.GT:
@@ -79,12 +83,13 @@ func getOperation(op opcode.Op) operation {
 }
 
 const (
-	ERR = -1
-	EQ  = 0
-	GT  = 1
-	GTE = 2
-	LT  = 3
-	LTE = 4
+	ERR       = -1
+	EQ        = 0
+	GT        = 1
+	GTE       = 2
+	LT        = 3
+	LTE       = 4
 	LOGIC_AND = 5
-	LOGIC_OR = 6
+	LOGIC_OR  = 6
+	SUM       = 7
 )
