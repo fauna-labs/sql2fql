@@ -15,8 +15,16 @@ type binaryOperatorIR struct {
 
 func (bin binaryOperatorIR) FQLRepr() string {
 	switch bin.op {
+	case SUBTRACT:
+		return fmt.Sprintf("Subtract(%s, %s)", bin.leftIR.FQLRepr(), bin.rightIR.FQLRepr())
 	case SUM:
 		return fmt.Sprintf("Sum([%s, %s])", bin.leftIR.FQLRepr(), bin.rightIR.FQLRepr())
+	case MULTIPLY:
+		return fmt.Sprintf("Multiply(%s, %s)", bin.leftIR.FQLRepr(), bin.rightIR.FQLRepr())
+	case DIVIDE:
+		return fmt.Sprintf("Divide(%s, %s)", bin.leftIR.FQLRepr(), bin.rightIR.FQLRepr())
+	case MODULO:
+		return fmt.Sprintf("Modulo(%s, %s)", bin.leftIR.FQLRepr(), bin.rightIR.FQLRepr())
 	case EQ:
 		return fmt.Sprintf("Equals(%s, %s)", bin.leftIR.FQLRepr(), bin.rightIR.FQLRepr())
 	case GT:
@@ -62,6 +70,14 @@ type operation int
 
 func getOperation(op opcode.Op) operation {
 	switch op {
+	case opcode.Div:
+		return DIVIDE
+	case opcode.Mul:
+		return MULTIPLY
+	case opcode.Mod:
+		return MODULO
+	case opcode.Minus:
+		return SUBTRACT
 	case opcode.Plus:
 		return SUM
 	case opcode.EQ:
@@ -92,4 +108,8 @@ const (
 	LOGIC_AND = 5
 	LOGIC_OR  = 6
 	SUM       = 7
+	DIVIDE    = 8
+	SUBTRACT  = 9
+	MULTIPLY  = 10
+	MODULO    = 11
 )
