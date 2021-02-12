@@ -7,12 +7,12 @@ import (
 )
 
 type setFieldIR struct {
-	name  fqlIR
+	field *fieldIR
 	value fqlIR
 }
 
 func (f setFieldIR) FQLRepr() string {
-	return fmt.Sprintf("{data:{ %s:%s}}", f.name.FQLRepr(), f.value.FQLRepr())
+	return fmt.Sprintf("%s:%s", f.field.name, f.value.FQLRepr())
 }
 
 type setFieldVisitor struct {
@@ -35,7 +35,7 @@ func (v *setFieldVisitor) Enter(in ast.Node) (ast.Node, bool) {
 	case *ast.ColumnName:
 		next := &fieldVisitor{}
 		_, _ = node.Accept(next)
-		v.root.name = next.root
+		v.root.field = next.root
 
 		return in, true
 	default:

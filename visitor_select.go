@@ -47,15 +47,7 @@ func (s *selectIR) FQLRepr() string {
 	case DELETE:
 		writeSelectDeleteFields(s, &sb)
 	case UPDATE:
-		if len(s.setFields) == 0 {
-			panic("UPDATE without SET")
-		} else {
-			sb.WriteString(fmt.Sprintf("Lambda('x', Update({"))
-			// write fields.
-			// Update(Var('x'), {data:{a:5}})
-
-			sb.WriteString("}))")
-		}
+		writeUpdateFields(s, &sb)
 	}
 
 	sb.WriteString(")")
@@ -129,7 +121,6 @@ func handleUpdate(v *selectVisitor, from *ast.TableRefsClause, where ast.ExprNod
 	for _, fNode := range setFields {
 		setField := &setFieldVisitor{}
 		fNode.Accept(setField)
-		fmt.Println(setField)
 		v.root.setFields = append(v.root.setFields, setField.root)
 
 	}
@@ -162,6 +153,23 @@ func writeSelectDeleteFields(s *selectIR, sb *strings.Builder) {
 		}
 
 		sb.WriteString("}))")
+	}
+}
+
+func writeUpdateFields(s *selectIR, sb *strings.Builder) {
+
+	if len(s.setFields) == 0 {
+		panic("UPDATE without SET")
+	} else {
+		sb.WriteString(fmt.Sprintf("Lambda('x', Update(Var('x'), {data:{"))
+		for i, f := range s.setFields {
+			sb.WriteString(f.FQLRepr())
+
+			if i < len(s.fields)-1 {
+				sb.WriteString(",")
+			}
+		}
+		sb.WriteString("}}))")
 	}
 }
 

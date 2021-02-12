@@ -33,7 +33,6 @@ func (v *OptimizedFqlVisitor) Enter(in ast.Node) (res ast.Node, skip bool) {
 	case *ast.SelectStmt:
 		columnsExtractor := &ColumnExtractorVisitor{}
 		node.From.Accept(columnsExtractor)
-		fmt.Println(columnsExtractor.colNames)
 		v.root = &voFqlStatement{}
 		return in, false
 	default:
