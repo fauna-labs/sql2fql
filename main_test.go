@@ -128,6 +128,12 @@ func TestInsertQuery(t *testing.T) {
 	assertSQL2FQL(t, sql, fql, false)
 }
 
+func TestCreateCollection(t *testing.T) {
+	sql := "create table a"
+	fql := "CreateCollection({ name: 'a' })"
+	assertSQL2FQL(t, sql, fql, false)
+}
+
 func assertSQL2FQL(t *testing.T, sql, fql string, optimize bool) {
 	ast, err := parseSql(sql)
 	if err != nil {
