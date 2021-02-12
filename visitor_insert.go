@@ -16,7 +16,7 @@ func (i *insertIR) FQLRepr() string {
 	var sb strings.Builder
 	sb.WriteString("Create(")
 	sb.WriteString(i.source.FQLRepr())
-	sb.WriteString(", {")
+	sb.WriteString(", { data: { ")
 
 	for idx, field := range i.fields {
 		value := i.values[idx]
@@ -28,7 +28,7 @@ func (i *insertIR) FQLRepr() string {
 		}
 	}
 
-	sb.WriteString("})")
+	sb.WriteString(" }})")
 	return sb.String()
 }
 

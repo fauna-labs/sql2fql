@@ -112,7 +112,7 @@ func TestDeleteWithSingleExactWhereEqual(t *testing.T) {
 
 func TestInsertQuery(t *testing.T) {
 	sql := "insert into a (b, c) values ('foo', 'bar')"
-	fql := "Create(Collection('a'), {b: 'foo', c: 'bar'})"
+	fql := "Create(Collection('a'), { data: { b: 'foo', c: 'bar' }})"
 	assertSQL2FQL(t, sql, fql, false)
 }
 
