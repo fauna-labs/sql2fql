@@ -3,15 +3,16 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"github.com/fatih/color"
+	"github.com/ditashi/jsbeautifier-go/jsbeautifier"
 	"os"
 	"os/exec"
 
+	"github.com/fatih/color"
+	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/pingcap/parser"
 	"github.com/pingcap/parser/ast"
 	_ "github.com/pingcap/parser/test_driver"
 	"github.com/spf13/cobra"
-	"github.com/jedib0t/go-pretty/v6/table"
 )
 
 const art = `
@@ -82,11 +83,15 @@ func run(cmd *cobra.Command, _ []string) {
 		t.AppendRow(table.Row{"SQL", sql})
 	}
 	fql := transpileSqlToFql(sql)
+	pfql, err := jsbeautifier.Beautify(&fql, jsbeautifier.DefaultOptions())
+	if err != nil || pfql == "" {
+		panic("fql was not valid javascript")
+	}
 	t.AppendSeparator()
 	if colors {
-		t.AppendRow(table.Row{"FQL", color.MagentaString(fql)})
+		t.AppendRow(table.Row{"FQL", color.MagentaString(pfql)})
 	} else {
-		t.AppendRow(table.Row{"FQL", fql})
+		t.AppendRow(table.Row{"FQL", pfql})
 	}
 	if key != "" {
 		if !shellInstalled() {
