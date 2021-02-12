@@ -107,6 +107,7 @@ func run(cmd *cobra.Command, _ []string) {
 	}
 	fmt.Println()
 	fmt.Println(t.Render())
+	fmt.Println()
 }
 
 func transpileSqlToFql(sql string) string {
