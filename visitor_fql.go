@@ -5,7 +5,7 @@ import (
 )
 
 func constructIR(root *ast.StmtNode) fqlIR {
-	v := &fqlIRVisitor{}
+	v := &fqlVisitor{}
 	(*root).Accept(v)
 	return v.root
 }
@@ -14,35 +14,35 @@ type fqlIR interface {
 	FQLRepr() string
 }
 
-type fqlIRVisitor struct {
+type fqlVisitor struct {
 	optimize bool
 	root     fqlIR
 }
 
-func (v *fqlIRVisitor) Enter(in ast.Node) (res ast.Node, skip bool) {
+func (v *fqlVisitor) Enter(in ast.Node) (res ast.Node, skip bool) {
 	switch node := in.(type) {
 	case *ast.SelectStmt:
-		next := &selectIRVisitor{}
+		next := &selectVisitor{}
 		res, skip = node.Accept(next)
 		v.root = next.root
 
 	case *ast.ColumnName:
-		next := &fieldIRVisitor{}
+		next := &fieldVisitor{}
 		res, skip = node.Accept(next)
 		v.root = next.root
 
 	case *ast.TableName:
-		next := &sourceIRVisitor{}
+		next := &sourceVisitor{}
 		res, skip = node.Accept(next)
 		v.root = next.root
 
 	case *ast.BinaryOperationExpr:
-		next := &binOpIRVisitor{}
+		next := &binaryOperatorVisitor{}
 		res, skip = node.Accept(next)
 		v.root = next.root
 
 	case ast.ValueExpr:
-		next := &valueIRVisitor{}
+		next := &valueVisitor{}
 		res, skip = node.Accept(next)
 		v.root = next.root
 
@@ -53,6 +53,6 @@ func (v *fqlIRVisitor) Enter(in ast.Node) (res ast.Node, skip bool) {
 	return
 }
 
-func (v *fqlIRVisitor) Leave(in ast.Node) (ast.Node, bool) {
+func (v *fqlVisitor) Leave(in ast.Node) (ast.Node, bool) {
 	return in, true
 }

@@ -22,11 +22,11 @@ func (i *indexIR) FQLRepr() string {
 	return fmt.Sprintf("Index('%s')", i.name)
 }
 
-type sourceIRVisitor struct {
+type sourceVisitor struct {
 	root fqlIR
 }
 
-func (v *sourceIRVisitor) Enter(in ast.Node) (ast.Node, bool) {
+func (v *sourceVisitor) Enter(in ast.Node) (ast.Node, bool) {
 	switch node := in.(type) {
 	case *ast.TableName:
 		if len(node.IndexHints) > 0 {
@@ -40,6 +40,6 @@ func (v *sourceIRVisitor) Enter(in ast.Node) (ast.Node, bool) {
 	}
 }
 
-func (v *sourceIRVisitor) Leave(in ast.Node) (ast.Node, bool) {
+func (v *sourceVisitor) Leave(in ast.Node) (ast.Node, bool) {
 	return in, true
 }

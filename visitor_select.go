@@ -28,7 +28,7 @@ func (s *selectIR) FQLRepr() string {
 		}
 	case *indexIR:
 		if s.filter != nil {
-			b := s.filter.(*binOpIR)
+			b := s.filter.(*binaryOperatorIR)
 			if b.op != EQ {
 				panic("indexes only works with equality operators")
 			}
@@ -60,29 +60,29 @@ func (s *selectIR) FQLRepr() string {
 	return sb.String()
 }
 
-type selectIRVisitor struct {
+type selectVisitor struct {
 	root *selectIR
 }
 
-func (v *selectIRVisitor) Enter(in ast.Node) (ast.Node, bool) {
+func (v *selectVisitor) Enter(in ast.Node) (ast.Node, bool) {
 	switch node := in.(type) {
 	case *ast.SelectStmt:
 		v.root = &selectIR{}
 
-		source := &sourceIRVisitor{}
+		source := &sourceVisitor{}
 		node.From.Accept(source)
 		v.root.source = source.root
 
 		for _, fNode := range node.Fields.Fields {
 			if fNode.Expr != nil {
-				field := &fieldIRVisitor{}
+				field := &fieldVisitor{}
 				fNode.Expr.Accept(field)
 				v.root.fields = append(v.root.fields, field.root)
 			}
 		}
 
 		if node.Where != nil {
-			filter := &binOpIRVisitor{}
+			filter := &binaryOperatorVisitor{}
 			node.Where.Accept(filter)
 			v.root.filter = filter.root
 		}
@@ -92,6 +92,6 @@ func (v *selectIRVisitor) Enter(in ast.Node) (ast.Node, bool) {
 	}
 }
 
-func (v *selectIRVisitor) Leave(in ast.Node) (ast.Node, bool) {
+func (v *selectVisitor) Leave(in ast.Node) (ast.Node, bool) {
 	return in, true
 }

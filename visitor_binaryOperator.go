@@ -7,13 +7,13 @@ import (
 	"github.com/pingcap/parser/opcode"
 )
 
-type binOpIR struct {
+type binaryOperatorIR struct {
 	op      operation
 	leftIR  fqlIR
 	rightIR fqlIR
 }
 
-func (bin binOpIR) FQLRepr() string {
+func (bin binaryOperatorIR) FQLRepr() string {
 	switch bin.op {
 	case EQ:
 		return fmt.Sprintf("Equals(%s, %s)", bin.leftIR.FQLRepr(), bin.rightIR.FQLRepr())
@@ -29,26 +29,26 @@ func (bin binOpIR) FQLRepr() string {
 	panic("Unsupported binary operation type")
 }
 
-type binOpIRVisitor struct {
-	root *binOpIR
+type binaryOperatorVisitor struct {
+	root *binaryOperatorIR
 }
 
-func (v *binOpIRVisitor) Enter(in ast.Node) (ast.Node, bool) {
+func (v *binaryOperatorVisitor) Enter(in ast.Node) (ast.Node, bool) {
 	switch node := in.(type) {
 	case *ast.BinaryOperationExpr:
-		left := &fqlIRVisitor{}
-		right := &fqlIRVisitor{}
+		left := &fqlVisitor{}
+		right := &fqlVisitor{}
 		node.L.Accept(left)
 		node.R.Accept(right)
 		op := getOperation(in.(*ast.BinaryOperationExpr).Op)
-		v.root = &binOpIR{op: op, leftIR: left.root, rightIR: right.root}
+		v.root = &binaryOperatorIR{op: op, leftIR: left.root, rightIR: right.root}
 		return in, true
 	default:
 		return in, false
 	}
 }
 
-func (v *binOpIRVisitor) Leave(in ast.Node) (ast.Node, bool) {
+func (v *binaryOperatorVisitor) Leave(in ast.Node) (ast.Node, bool) {
 	return in, true
 }
 

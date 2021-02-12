@@ -14,12 +14,12 @@ func (f fieldIR) FQLRepr() string {
 	return fmt.Sprintf("Select(['data','%s'], Var('doc'))", f.name)
 }
 
-type fieldIRVisitor struct {
+type fieldVisitor struct {
 	optimize bool
 	root     *fieldIR
 }
 
-func (v *fieldIRVisitor) Enter(in ast.Node) (ast.Node, bool) {
+func (v *fieldVisitor) Enter(in ast.Node) (ast.Node, bool) {
 	switch node := in.(type) {
 	case *ast.ColumnName:
 		v.root = &fieldIR{node.Name.L}
@@ -29,6 +29,6 @@ func (v *fieldIRVisitor) Enter(in ast.Node) (ast.Node, bool) {
 	}
 }
 
-func (v *fieldIRVisitor) Leave(in ast.Node) (ast.Node, bool) {
+func (v *fieldVisitor) Leave(in ast.Node) (ast.Node, bool) {
 	return in, true
 }

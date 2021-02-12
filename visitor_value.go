@@ -12,11 +12,11 @@ func (v valueIR) FQLRepr() string {
 	return string(v)
 }
 
-type valueIRVisitor struct {
+type valueVisitor struct {
 	root valueIR
 }
 
-func (v *valueIRVisitor) Enter(in ast.Node) (ast.Node, bool) {
+func (v *valueVisitor) Enter(in ast.Node) (ast.Node, bool) {
 	switch node := in.(type) {
 	case ast.ValueExpr:
 		switch value := node.GetValue().(type) {
@@ -31,6 +31,6 @@ func (v *valueIRVisitor) Enter(in ast.Node) (ast.Node, bool) {
 	}
 }
 
-func (v *valueIRVisitor) Leave(in ast.Node) (ast.Node, bool) {
+func (v *valueVisitor) Leave(in ast.Node) (ast.Node, bool) {
 	return in, true
 }
