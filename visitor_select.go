@@ -161,15 +161,15 @@ func writeUpdateFields(s *selectIR, sb *strings.Builder) {
 	if len(s.setFields) == 0 {
 		panic("UPDATE without SET")
 	} else {
-		sb.WriteString(fmt.Sprintf("Lambda('x', Update(Var('x'), {data:{"))
+		sb.WriteString(fmt.Sprintf("Lambda('x', Let({doc: Get(Var('x'))}, Update(Var('x'), {data:{"))
 		for i, f := range s.setFields {
 			sb.WriteString(f.FQLRepr())
 
-			if i < len(s.fields)-1 {
+			if i < len(s.setFields)-1 {
 				sb.WriteString(",")
 			}
 		}
-		sb.WriteString("}}))")
+		sb.WriteString("}})))")
 	}
 }
 
