@@ -142,5 +142,8 @@ Bellow are some examples of supported SQL statements.
 Copyright Fauna, Inc. or its affiliates. All rights reserved.
 SPDX-License-Identifier: MIT-0
 
-[golang]: https://golang.org/
+[fauna]: https://fauna.com
+[fauna-labs]: https://github.com/fauna-labs
+[fauna-organization]: https://github.com/fauna
 [fauna-shell]: https://github.com/fauna/fauna-shell
+[golang]: https://golang.org/
