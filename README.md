@@ -9,8 +9,7 @@ organization][fauna-organization].
 
 # Fauna SQL to FQL utility
 
-This repository contains a utility that translates simple SQL statements into
-FQL queries. Please note that current coverage of the SQL language is limited.
+If you are familiar with SQL and want to ease into FQL (Fauna Query Language), this repository will help you execute simple SQL statements on your Fauna database by translating them into FQL Queries. While it is not possible to provide an exhaustive translation between SQL and FQL, this is a useful tool for you to learn and get started with FQL. As you gain more experience with the FQL, the ease and power of its syntax should become evident. Complex queries that are difficult, or even impossible, in SQL can be composed very easily in FQL.
 
 ## Requirements
 
