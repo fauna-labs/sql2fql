@@ -1,11 +1,15 @@
+// Copyright Fauna, Inc.
+// SPDX-License-Identifier: MIT-0
+
 package main
 
 import (
 	"bytes"
 	"fmt"
-	"github.com/ditashi/jsbeautifier-go/jsbeautifier"
 	"os"
 	"os/exec"
+
+	"github.com/ditashi/jsbeautifier-go/jsbeautifier"
 
 	"github.com/fatih/color"
 	"github.com/jedib0t/go-pretty/v6/table"
