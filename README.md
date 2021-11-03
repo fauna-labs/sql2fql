@@ -31,8 +31,8 @@ Bellow are some examples of supported SQL statements.
 
 ### CREATE TABLE
 
-```bash
-./sql2fql --sql "create table users"
+```console
+$ ./sql2fql --sql "create table users"
 
  SQL  create table users
 
@@ -43,8 +43,8 @@ Bellow are some examples of supported SQL statements.
 
 ### CREATE INDEX
 
-```bash
-./sql2fql --sql "create index user_by_name on users (name)"
+```console
+$ ./sql2fql --sql "create index user_by_name on users (name)"
 
  SQL  create index user_by_name on users (name);
 
@@ -60,16 +60,16 @@ Bellow are some examples of supported SQL statements.
 
 ### SELECT
 
-```bash
-./sql2fql --sql "select * from users"
+```console
+$ ./sql2fql --sql "select * from users"
 
  SQL  select * from users
 
  FQL  Map(Paginate(Documents(Collection('users'))), Lambda('x', Get(Var('x'))))
 ```
 
-```bash
-./sql2fql --sql "select name, age from users"
+```console
+$ ./sql2fql --sql "select name, age from users"
 
  SQL  select name, age from users
 
@@ -81,8 +81,8 @@ Bellow are some examples of supported SQL statements.
       })))
 ```
 
-```bash
-./sql2fql --sql "select name, age from users where name = 'bob'"
+```console
+$ ./sql2fql --sql "select name, age from users where name = 'bob'"
 
  SQL  select name, age from users where name = 'bob'
 
@@ -96,8 +96,8 @@ Bellow are some examples of supported SQL statements.
       })))
 ```
 
-```bash
-./sql2fql --sql "select name, age from users use index (user_by_name) where name = 'bob'"
+```console
+$ ./sql2fql --sql "select name, age from users use index (user_by_name) where name = 'bob'"
 
  SQL  select name, age from users use index (user_by_name) where name = 'bob'
 
@@ -111,8 +111,8 @@ Bellow are some examples of supported SQL statements.
 
 ### INSERT
 
-```bash
-./sql2fql --sql "insert into users (name, age) values ('bob', 42)"
+```console
+$ ./sql2fql --sql "insert into users (name, age) values ('bob', 42)"
 
  SQL  insert into users (name, age) values ('bob', 42)
 
@@ -126,8 +126,8 @@ Bellow are some examples of supported SQL statements.
 
 ### UPDATE
 
-```bash
-./sql2fql --sql "update users set age = 43 where name = 'bob'"
+```console
+$ ./sql2fql --sql "update users set age = 43 where name = 'bob'"
 
  SQL  update users set age = 43 where name = 'bob'
 
@@ -142,8 +142,8 @@ Bellow are some examples of supported SQL statements.
       }))))
 ```
 
-```bash
-./sql2fql --sql "update users use index (user_by_name) set age = 43 where name = 'bob'"
+```console
+$ ./sql2fql --sql "update users use index (user_by_name) set age = 43 where name = 'bob'"
 
  SQL  update users use index (user_by_name) set age = 43 where name = 'bob'
 
@@ -158,8 +158,8 @@ Bellow are some examples of supported SQL statements.
 
 ### DELETE
 
-```bash
-./sql2fql --sql "delete from users where name = 'bob'"
+```console
+$ ./sql2fql --sql "delete from users where name = 'bob'"
 
  SQL  delete from users where name = 'bob'
 
@@ -168,8 +168,8 @@ Bellow are some examples of supported SQL statements.
       }, Equals(Select(['data', 'name'], Var('doc'), null), 'bob'))))), Lambda('x', Delete(Var('x'))))
 ```
 
-```bash
-./sql2fql --sql="delete from users use index (user_by_name) where name = 'bob'"
+```console
+$ ./sql2fql --sql="delete from users use index (user_by_name) where name = 'bob'"
 
  SQL  delete from users use index (user_by_name) where name = 'bob'
 
