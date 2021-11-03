@@ -44,7 +44,7 @@ Bellow are some examples of supported SQL statements.
 ### CREATE INDEX
 
 ```bash
-./sql2f:l --sql "create index user_by_name on users (name)"
+./sql2fql --sql "create index user_by_name on users (name)"
 
  SQL  create index user_by_name on users (name);
 
@@ -109,7 +109,7 @@ Bellow are some examples of supported SQL statements.
       })))
 ```
 
-### UPDATE
+### INSERT
 
 ```bash
 ./sql2fql --sql "insert into users (name, age) values ('bob', 42)"
@@ -124,6 +124,38 @@ Bellow are some examples of supported SQL statements.
       })
 ```
 
+### UPDATE
+
+```bash
+./sql2fql --sql "update users set age = 43 where name = 'bob'"
+
+ SQL  update users set age = 43 where name = 'bob'
+
+ FQL  Map(Paginate(Filter(Documents(Collection('users')), Lambda('x', Let({
+          doc: Get(Var('x'))
+      }, Equals(Select(['data', 'name'], Var('doc'), null), 'bob'))))), Lambda('x', Let({
+          doc: Get(Var('x'))
+      }, Update(Var('x'), {
+          data: {
+              age: 43
+          }
+      }))))
+```
+
+```bash
+./sql2fql --sql "update users use index (user_by_name) set age = 43 where name = 'bob'"
+
+ SQL  update users use index (user_by_name) set age = 43 where name = 'bob'
+
+ FQL  Map(Paginate(Match(Index('user_by_name'), 'bob')), Lambda('x', Let({
+          doc: Get(Var('x'))
+      }, Update(Var('x'), {
+          data: {
+              age: 43
+          }
+      }))))
+```
+
 ### DELETE
 
 ```bash
@@ -134,6 +166,14 @@ Bellow are some examples of supported SQL statements.
  FQL  Map(Paginate(Filter(Documents(Collection('users')), Lambda('x', Let({
           doc: Get(Var('x'))
       }, Equals(Select(['data', 'name'], Var('doc'), null), 'bob'))))), Lambda('x', Delete(Var('x'))))
+```
+
+```bash
+./sql2fql --sql="delete from users use index (user_by_name) where name = 'bob'"
+
+ SQL  delete from users use index (user_by_name) where name = 'bob'
+
+ FQL  Map(Paginate(Match(Index('user_by_name'), 'bob')), Lambda('x', Delete(Var('x'))))
 ```
 
 ---
