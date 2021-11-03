@@ -44,7 +44,7 @@ Bellow are some examples of supported SQL statements.
 ### CREATE INDEX
 
 ```bash
-./sql2f:l --sql "create index user_by_name on users (name)"
+./sql2fql --sql "create index user_by_name on users (name)"
 
  SQL  create index user_by_name on users (name);
 
